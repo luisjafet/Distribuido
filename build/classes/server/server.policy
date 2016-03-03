@@ -1,0 +1,3 @@
+grant codeBase "file:/home/luisjafet/*" {
+    permission java.security.AllPermission;
+};
