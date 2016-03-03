@@ -60,7 +60,7 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
     }
 
     public static void main(String[] args) {
-        System.setProperty("java.security.policy", "/home/luisjafet/itam/distribuido/proyecto1/RMIProject/src/server/server.policy");
+        System.setProperty("java.security.policy", "server.policy");
         String serverURL = new String("///ChatServer");
         try {
             LocateRegistry.createRegistry(1099);
