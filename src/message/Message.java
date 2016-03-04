@@ -16,10 +16,12 @@ public class Message implements Serializable {
     public String name;
     public String text;
     public String channel;
+    public boolean content;
 
-    public Message(String name, String channel, String text) {
+    public Message(String name, String channel, String text, boolean content) {
         this.name = name;
         this.text = text;
         this.channel = channel;
+        this.content = content;
     }
 }

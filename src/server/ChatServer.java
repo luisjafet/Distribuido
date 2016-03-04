@@ -39,11 +39,11 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
             ((IChatClient) entChater.nextElement()).receiveEnter(name, channel);
         }
         File file = new File(channel);
-        System.out.println("Client " + name + " has logged in channel/topic: " + channel);
+        System.out.println("Client " + name + " has logged in: " + channel);
     }
 
     public synchronized void logout(String name, String channel) throws RemoteException {
-        System.out.println("Client " + name + " has logged out of channel/topic: " + channel);
+        System.out.println("Client " + name + " has logged out of: " + channel);
         Enumeration entChater = chatters.elements();
         while (entChater.hasMoreElements()) {
             ((IChatClient) entChater.nextElement()).receiveExit(name, channel);
@@ -68,7 +68,13 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
                     message.text = textSend.toString();
                 } else {
                     writer = new FileWriter(message.channel, true);
-                    writer.write("Message from " + message.name + " in channel/topic " + message.channel + ": " + message.text + "\n");
+                    if (message.content) {
+                        if (message.text.toLowerCase().contains(message.channel)) {
+                            writer.write("Message from " + message.name + " in " + message.channel + ": " + message.text + "\n");
+                        }
+                    } else {
+                        writer.write("Message from " + message.name + " in " + message.channel + ": " + message.text + "\n");
+                    }
                     writer.close();
                 }
                 ((IChatClient) entChater.nextElement()).receiveMessage(message);
@@ -78,7 +84,7 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
         } catch (IOException ex) {
             Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println("Message from " + message.name + " in channel/topic " + message.channel + ": " + message.text + "\n");
+        System.out.println("Message from " + message.name + " in " + message.channel + ": " + message.text + "\n");
     }
 
     public static void main(String[] args) {
