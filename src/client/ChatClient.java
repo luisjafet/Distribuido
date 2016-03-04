@@ -53,7 +53,7 @@ public class ChatClient extends UnicastRemoteObject implements IChatClient {
 
     private void logout(String channel) {
         try {
-            if (!channels.contains(channel)) {
+            if (channels.contains(channel)) {
                 server.logout(name, channel);
                 channels.remove(channel);
             } else {
@@ -151,6 +151,7 @@ public class ChatClient extends UnicastRemoteObject implements IChatClient {
             for (int i = 0; i < client.channels.size(); i++) {
                 client.logout(client.channels.get(i));
             }
+            System.exit(0);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
