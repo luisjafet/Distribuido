@@ -53,14 +53,19 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 //            writer = new FileWriter(message.canal + ".txt", true);
 //            writer. write(message.text + "-");
 //            writer.close();
-
             ((IChatClient) entChater.nextElement()).receiveMessage(message);
         }
         System.out.println("Message from: " + message.name + " in channel: " + message.channel + "\n" + message.text);
     }
 
     public static void main(String[] args) {
-        System.setProperty("java.security.policy", "server.policy");
+        String osName = System.getProperty("os.name").toLowerCase();
+        String serverPolicyFile = "server.policy";
+        if (osName.contains("win")) {
+            serverPolicyFile = "file:server.policy";
+        }
+        
+        System.setProperty("java.security.policy", serverPolicyFile);
         String serverURL = new String("///ChatServer");
         try {
             LocateRegistry.createRegistry(1099);
