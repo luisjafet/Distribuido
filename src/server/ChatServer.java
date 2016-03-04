@@ -7,7 +7,10 @@ package server;
 
 import interfaces.IChatClient;
 import interfaces.IChatServer;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.*;
@@ -36,11 +39,11 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
             ((IChatClient) entChater.nextElement()).receiveEnter(name, channel);
         }
         File file = new File(channel);
-        System.out.println("Client " + name + " has logged in channel: " + channel);
+        System.out.println("Client " + name + " has logged in channel/topic: " + channel);
     }
 
     public synchronized void logout(String name, String channel) throws RemoteException {
-        System.out.println("Client " + name + " has logged out of channel: " + channel);
+        System.out.println("Client " + name + " has logged out of channel/topic: " + channel);
         Enumeration entChater = chatters.elements();
         while (entChater.hasMoreElements()) {
             ((IChatClient) entChater.nextElement()).receiveExit(name, channel);
@@ -50,20 +53,32 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 
     public synchronized void send(Message message) throws RemoteException {
         Enumeration entChater = chatters.elements();
+        String textRead;
+        StringBuilder textSend = new StringBuilder();
         FileWriter writer;
-        while (entChater.hasMoreElements()) {
-
-            try {
-                writer = new FileWriter(message.channel, true);
-                writer.write("Message from " + message.name + " in channel " + message.channel + ": " + message.text + "\n");
-                writer.close();
-            } catch (IOException ex) {
-                Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
+        FileReader reader;
+        try {
+            while (entChater.hasMoreElements()) {
+                if (message.text.equals("all")) {
+                    reader = new FileReader(message.channel);
+                    BufferedReader content = new BufferedReader(reader);
+                    while ((textRead = content.readLine()) != null) {
+                        textSend.append(textRead + "\n");
+                    }
+                    message.text = textSend.toString();
+                } else {
+                    writer = new FileWriter(message.channel, true);
+                    writer.write("Message from " + message.name + " in channel/topic " + message.channel + ": " + message.text + "\n");
+                    writer.close();
+                }
+                ((IChatClient) entChater.nextElement()).receiveMessage(message);
             }
-
-            ((IChatClient) entChater.nextElement()).receiveMessage(message);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println("Message from " + message.name + " in channel " + message.channel + ": " + message.text);
+        System.out.println("Message from " + message.name + " in channel/topic " + message.channel + ": " + message.text + "\n");
     }
 
     public static void main(String[] args) {

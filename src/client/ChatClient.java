@@ -44,7 +44,7 @@ public class ChatClient extends UnicastRemoteObject implements IChatClient {
                 server.login(name, channel, this); // callback object
                 channels.add(channel);
             } else {
-                System.out.println("\n-----Your are logged " + name + "-----\n");
+                System.out.println("\n-----Your are subscribed to " + channel + "-----\n");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -57,7 +57,7 @@ public class ChatClient extends UnicastRemoteObject implements IChatClient {
                 server.logout(name, channel);
                 channels.remove(channel);
             } else {
-                System.out.println("\n-----Your aren't logged " + name + "-----\n");
+                System.out.println("\n-----Your aren't subscribed to  " + channel + "-----\n");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -66,7 +66,12 @@ public class ChatClient extends UnicastRemoteObject implements IChatClient {
 
     private void send(String text, String channel) {
         try {
-            server.send(new Message(name, channel, text));
+            if (channels.contains(channel)) {
+                server.send(new Message(name, channel, text));
+            } else {
+                System.out.println(name + " you are not subscribed " + channel + "\n");
+            }
+
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -92,7 +97,7 @@ public class ChatClient extends UnicastRemoteObject implements IChatClient {
 
     public void receiveMessage(Message message) {
         if (channels.contains(message.channel)) {
-            System.out.println("Message from " + message.name + " in channel " + message.channel + ": " + message.text + "\n");
+            System.out.println("Message from " + message.name + " in channel/topic " + message.channel + ": " + message.text + "\n");
 
         }
     }
@@ -125,26 +130,31 @@ public class ChatClient extends UnicastRemoteObject implements IChatClient {
             channel = askForString("Enter the channel's name: ");
             url = askForString("Enter the url: ");
             ChatClient client = new ChatClient(clientName, channel, url);
+            System.out.println("This are the valid command:");
+            System.out.println("subscribe   --subscribe to a channel/topic");
+            System.out.println("unsubscribe --unsubscribe to a channel/topic");
+            System.out.println("all         --get all message of a channel/topic");
+            System.out.println("quit        --exit the program");
             strCad1 = askForString(clientName + " -- type a message/command: ");
             boolean next = true;
             while (!strCad1.equals("quit")) {
-                strCad2 = askForString(clientName + " -- type a channel: ");
-                if (strCad1.equals("login")) {
+
+                strCad2 = askForString(clientName + " -- type a channel/topic: ");
+                if (strCad1.equals("subscribe")) {
                     client.login(strCad2);
                     next = false;
-                } else if (strCad1.equals("logout")) {
+                } else if (strCad1.equals("unsubscribe")) {
                     client.logout(strCad2);
+                    next = false;
+                } else if (strCad1.equals("all")) {
+                    client.send(strCad1, strCad2);
                     next = false;
                 }
                 if (next) {
-                    if (client.channels.contains(strCad2)) {
-                        client.send(strCad1, strCad2);
-                        next = true;
-                    } else {
-                        System.out.println(clientName + " you are not login to channel: " + strCad2 + "\n");
-                        next = true;
-                    }
+                    client.send(strCad1, strCad2);
+                    next = true;
                 }
+                next = true;
                 strCad1 = askForString(clientName + " -- type a message/command: ");
             }
             System.out.println("Local console " + client.name + ", going down");
