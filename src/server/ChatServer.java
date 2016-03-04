@@ -9,10 +9,13 @@ import interfaces.IChatClient;
 import interfaces.IChatServer;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import message.Message;
 
 /**
@@ -32,7 +35,7 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
         while (entChater.hasMoreElements()) {
             ((IChatClient) entChater.nextElement()).receiveEnter(name, channel);
         }
-        //File file = new File(channel);
+        File file = new File(channel);
         System.out.println("Client " + name + " has logged in channel: " + channel);
     }
 
@@ -47,15 +50,20 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 
     public synchronized void send(Message message) throws RemoteException {
         Enumeration entChater = chatters.elements();
-//        FileWriter writer;
+        FileWriter writer;
         while (entChater.hasMoreElements()) {
 
-//            writer = new FileWriter(message.canal + ".txt", true);
-//            writer. write(message.text + "-");
-//            writer.close();
+            try {
+                writer = new FileWriter(message.channel, true);
+                writer.write("Message from " + message.name + " in channel " + message.channel + ": " + message.text + "\n");
+                writer.close();
+            } catch (IOException ex) {
+                Logger.getLogger(ChatServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
             ((IChatClient) entChater.nextElement()).receiveMessage(message);
         }
-        System.out.println("Message from: " + message.name + " in channel: " + message.channel + "\n" + message.text);
+        System.out.println("Message from " + message.name + " in channel " + message.channel + ": " + message.text);
     }
 
     public static void main(String[] args) {
@@ -64,7 +72,7 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
         if (osName.contains("win")) {
             serverPolicyFile = "file:server.policy";
         }
-        
+
         System.setProperty("java.security.policy", serverPolicyFile);
         String serverURL = new String("///ChatServer");
         try {

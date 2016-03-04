@@ -92,7 +92,7 @@ public class ChatClient extends UnicastRemoteObject implements IChatClient {
 
     public void receiveMessage(Message message) {
         if (channels.contains(message.channel)) {
-            System.out.println("Message from: " + message.name + " in channel: " + message.channel + "\n" + message.text);
+            System.out.println("Message from " + message.name + " in channel " + message.channel + ": " + message.text + "\n");
 
         }
     }
