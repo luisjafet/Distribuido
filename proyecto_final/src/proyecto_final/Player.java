@@ -17,10 +17,11 @@ import java.util.logging.Logger;
  *
  * @author luis
  */
-public class Player {
+public class Player extends Thread {
 
     int id;
     int n;
+    boolean sender;
     int[] deliv;
     int[][] sent;
 
@@ -28,12 +29,12 @@ public class Player {
     InetAddress group;
     int port;
 
-    public Player(int id, int n, int port, String ip) {
+    public Player(int id, int n, int port, String ip, boolean sender) {
         this.id = id;
         this.n = n;
+        this.sender = sender;
         this.deliv = new int[n];
         this.sent = new int[n][n];
-
         this.port = port;
 
         try {
@@ -44,6 +45,14 @@ public class Player {
             System.out.println("Socket: " + e.getMessage());
         } catch (IOException ex) {
             Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void run() {
+        if (sender) {
+            send("I'm sender " + id);
+        } else {
+            System.out.println(receive());
         }
     }
 
@@ -64,42 +73,53 @@ public class Player {
         }
     }
 
-    public void receive() {
+    public String receive() {
+        String message = "";
         try {
             byte[] buffer = new byte[1000];
             DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
             // Reception of (M, ST_m) to the NC system
             s.receive(messageIn);
             String receive_message = new String(messageIn.getData());
-            System.out.println("Message: " + receive_message + " from: " + messageIn.getAddress());
+//            System.out.println("________Message: " + receive_message + " from: " + messageIn.getAddress());
             String[] parts = receive_message.split("CONTROL");
-            String message = parts[0];
+//            System.out.println("___parts[0]: " + parts[0]);
+//            System.out.println("___parts[1]: " + parts[1]);
+//            System.out.println("___parts[2]: " + parts[2]);
+            message = parts[0];
             int[][] st = stringToMatrix(parts[1], n);
-            int from = Integer.parseInt(parts[3]);
+            int from = Integer.parseInt(parts[2].trim());
 
             // Rule 2
             boolean waiting = true;
-            int accomplished;
+            int accomplished = 0;
 
             while (waiting) {
-                accomplished = 0;
+                
+                //accomplished = 0;
                 for (int i = 0; i < n; i++) {
                     if (deliv[i] >= st[i][id]) {
                         accomplished++;
+                        System.out.println("player " + id + "is waiting");
+//                        System.out.println("deliv[i] " + deliv[i]);
+//                        System.out.println("st[i][id] " + st[i][id]);
                     }
                 }
+                
                 if (accomplished == n) {
                     waiting = false;
+                    System.out.println("player " + id + "is NOOOOOOT waiting");
                 } else {
                     s.receive(messageIn);
                     receive_message = new String(messageIn.getData());
-                    System.out.println("Message: " + receive_message + " from: " + messageIn.getAddress());
+                    System.out.println("********Message: " + receive_message + " from: " + messageIn.getAddress());
                     parts = receive_message.split("CONTROL");
+                    message += "," + parts[0];
                     st = stringToMatrix(parts[1], n);
                 }
             }
-
             // Delivery of M to the C system
+            System.out.println("C System " + id + " : message: " + receive_message + " from: " + messageIn.getAddress());
             deliv[from]++;
             sent[from][id]++;
             int max = 0;
@@ -113,6 +133,8 @@ public class Player {
         } catch (IOException ex) {
             Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        return message;
     }
 
     public void logout() {
@@ -129,15 +151,20 @@ public class Player {
                 sb.append(b + "");
             }
         }
+//        System.out.println("matrix");
+//        System.out.println(sb.toString());
         return sb.toString();
     }
 
     private int[][] stringToMatrix(String str, int n) {
         int[][] matrix = new int[n][n];
         int c = 0;
+        String a = "";
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                matrix[i][j] = Integer.parseInt(str.charAt(c++) + "");
+                a = str.charAt(c) + "";
+                matrix[i][j] = Integer.parseInt(a.trim());
+                c++;
             }
         }
         return matrix;
