@@ -9,11 +9,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketException;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,12 +25,14 @@ public class Sender extends Thread {
     InetAddress group;
     int port;
     int id;
+    int[] clock;
 
-    public Sender(String ip, int port, int id) {
-        this.port = port;
-        this.id = id;
+    public Sender(Process p) {
+        this.port = p.port;
+        this.id = p.id;
+        this.clock = p.clock;
         try {
-            group = InetAddress.getByName(ip); // destination multicast group 
+            group = InetAddress.getByName(p.ip); // destination multicast group 
             s = new MulticastSocket(port);
             s.joinGroup(group);
         } catch (SocketException e) {
@@ -41,6 +41,7 @@ public class Sender extends Thread {
             Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
 
     public void send(Message message) {
         try {
@@ -61,11 +62,12 @@ public class Sender extends Thread {
 
         try {
             while (true) {
-                String currentDate = (new Date()).toString();
-                Message message = new Message(currentDate);
+                String currentDate = "Hola soy: " + id;
+                // Update clock
+                clock[id]++;
+                Message message = new Message(currentDate, clock);
                 send(message);
-                System.out.println("_________________________");
-                System.out.println("proceso: " + id + " envia: " + message);
+                //System.out.println("Proceso: " + id + " envia: " + message);
                 Thread.sleep(2000);
             }
         } catch (InterruptedException ex) {

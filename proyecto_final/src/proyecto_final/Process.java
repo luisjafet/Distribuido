@@ -5,6 +5,8 @@
  */
 package proyecto_final;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author luisjafet
@@ -13,8 +15,8 @@ public class Process {
 
     int id;
     int n;
-    int[] deliv;
-    int[][] sent;
+    int[] clock;
+    ArrayList<Message> queue;
 
     int port;
     String ip;
@@ -22,12 +24,14 @@ public class Process {
     Receiver receiver;
     Sender sender;
 
-    public Process(String ip, int port, int id) {
+    public Process(String ip, int port, int id, int n) {
         this.ip = ip;
         this.port = port;
         this.id = id;
-        this.receiver = new Receiver(ip, port, id);
-        this.sender = new Sender(ip, port, id);
+        this.clock = new int[n];
+        this.queue = new ArrayList<Message>();
+        this.receiver = new Receiver(this);
+        this.sender = new Sender(this);
     }
 
     public void startProcess() {

@@ -14,15 +14,37 @@ import java.io.Serializable;
 public class Message implements Serializable{
     
     String content;
-    int[] clock = {1,2,3};
+    int[] clock;
     
-    public Message(String content){
+    public Message(String content, int[] clock){
+        this.content = content;
+        this.clock = clock;
+    }
+
+   
+    public void setContent(String content) {
         this.content = content;
     }
 
+   
+
+    public void setClock(int[] clock) {
+        this.clock = clock;
+    }
+
+    
+    
     @Override
     public String toString() {
-        return "Message{" + "content=" + content + ", clock=" + clock + '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Contenido: " + content +  " ");
+        sb.append("Reloj: " +  " ");
+        
+        for(int i=0; i<clock.length; i++){
+            sb.append(clock[i] + ", ");
+        }
+        
+        return sb.toString();
     }
     
     
