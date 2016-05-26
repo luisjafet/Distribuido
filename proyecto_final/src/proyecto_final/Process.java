@@ -35,4 +35,12 @@ public class Process {
         sender.start();
     }
 
+    public void startSender() {
+        sender.start();
+    }
+
+    public void startReceiver() {
+        receiver.start();
+    }
+
 }

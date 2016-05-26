@@ -5,7 +5,9 @@
  */
 package proyecto_final;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -21,7 +23,7 @@ import java.util.logging.Logger;
  */
 public class Sender extends Thread {
 
-    DatagramSocket s;
+    MulticastSocket s;
     InetAddress group;
     int port;
     int id;
@@ -31,36 +33,39 @@ public class Sender extends Thread {
         this.id = id;
         try {
             group = InetAddress.getByName(ip); // destination multicast group 
-            s = new DatagramSocket(port);
-
-            //s.joinGroup(group);
+            s = new MulticastSocket(port);
+            s.joinGroup(group);
         } catch (SocketException e) {
             System.out.println("Socket: " + e.getMessage());
         } catch (IOException ex) {
-            Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public void send(String message) {
-        byte[] m = message.getBytes();
-        DatagramPacket messageOut = new DatagramPacket(m, m.length, group, port);
-
+    public void send(Message message) {
         try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(message);
+            byte[] data = baos.toByteArray();
+            DatagramPacket messageOut = new DatagramPacket(data, data.length, group, port);
             s.send(messageOut);
         } catch (IOException ex) {
-            Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Sender.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
 
     @Override
     public void run() {
-        String currentDate = (new Date()).toString();
+
         try {
             while (true) {
-                send(currentDate);
+                String currentDate = (new Date()).toString();
+                Message message = new Message(currentDate);
+                send(message);
                 System.out.println("_________________________");
-                System.out.println("proceso: " + id + " envia: " + currentDate);
+                System.out.println("proceso: " + id + " envia: " + message);
                 Thread.sleep(2000);
             }
         } catch (InterruptedException ex) {

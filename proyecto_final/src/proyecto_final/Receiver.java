@@ -5,7 +5,9 @@
  */
 package proyecto_final;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -34,22 +36,36 @@ public class Receiver extends Thread {
         } catch (SocketException e) {
             System.out.println("Socket: " + e.getMessage());
         } catch (IOException ex) {
-            Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     public String receive() {
-        String message = "";
+        Message message = null;
         try {
             byte[] buffer = new byte[1000];
             DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
             s.receive(messageIn);
-            message = new String(messageIn.getData());
+
+            //Deserialze object
+            ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            Object readObject = ois.readObject();
+            if (readObject instanceof Message) {
+                message = (Message) readObject;
+                System.out.println("Message is: " + message);
+            } else {
+                System.out.println("The received object is not of type Message!");
+            }
+
         } catch (IOException ex) {
             Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception e) {
+            System.out.println("No object could be read from the received UDP datagram.");
         }
 
-        return message;
+        return message.toString();
+
     }
 
     @Override
